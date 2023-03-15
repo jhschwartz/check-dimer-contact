@@ -1,8 +1,10 @@
 import os
 import subprocess
 
+import pathlib
+dir_ = pathlib.Path(__file__).parent.resolve()
 
-def check_contact(chain1_path, chain2_path, thresh_max_dist=8, thresh_min_pairs=10, exe_path='./check_contact.exe'):
+def check_contact(chain1_path, chain2_path, thresh_max_dist=8, thresh_min_pairs=10, exe_path=f'{dir_}/check_contact.exe'):
     if not os.path.exists(exe_path):
         raise FileNotFoundError('check contact executable not found!')
 
