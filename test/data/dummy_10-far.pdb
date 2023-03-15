@@ -1,0 +1,13 @@
+ATOM   2189  CB  ALA B   1           0      20       1  1.00 21.63           C 
+ATOM   2189  CA  ALA B   2           0      21       1  1.00 21.63           C  
+HETATM 2189  CB  ALA B   3           0      25       1  1.00 21.63           C  
+ATOM   2189  CB  ALA B   4           5      20       1  1.00 21.63           C  
+ATOM   2189  N   ALA B   4           5       0       1  1.00 21.63           C 
+ATOM   2189  CB  ALA B   5           2      20       6  1.00 21.63           C 
+REMARK 
+ATOM   2189  CA  ALA B   6           3      23       3  1.00 21.63           C  
+ATOM   2189  CB  ALA B   7           0      22       0  1.00 21.63           C  
+ATOM   2189  CB  ALA B   8           0      28       0  1.00 21.63           C  
+LINK
+ATOM   2189  CA  ALA B   9         8.0      20       0  1.00 21.63           C  
+ATOM   2189  CB  ALA B  10           0      20     8.1  1.00 21.63           C  

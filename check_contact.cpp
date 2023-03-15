@@ -2,10 +2,9 @@
 #include <iostream>
 #include <fstream>
 #include <string>
-#include <stdlib.h>
 #include <cmath>
 
-#include "lib/cxxopts-3.1.1/include/cxxopts.hpp"
+#include "include/cxxopts-3.1.1/include/cxxopts.hpp"
 
 using namespace std;
 
@@ -25,10 +24,6 @@ double dist_between_coor(Coordinate& c1, Coordinate& c2) {
 
 double get_num_from_line(string line, int start_index, int num_char) {
     string current_residue = line.substr(start_index, num_char);
-
-    current_residue.erase(std::remove(current_residue.begin(),current_residue.end(),' '),current_residue.end());
-    current_residue.erase(std::remove(current_residue.begin(),current_residue.end(),'\t'),current_residue.end());
-
     return atof(current_residue.c_str());
 }
 
@@ -39,7 +34,7 @@ int count_residues(const string& chain_path) {
     int count = 0;
 
     int current_residue = 0;
-    int last_residue = 0;
+    int last_residue = -1;
     
     string atom_type;
     bool seen_ca_or_cb = false;
@@ -47,11 +42,16 @@ int count_residues(const string& chain_path) {
     for(string line; getline(pdbfile, line);) {
 
         // skip line if line does not start with ATOM or HETATM
-        if (line.find("ATOM") != 0 and line.find("HETATM") != 0) 
+        if (line.find("ATOM") != 0 and line.find("HETATM") != 0) {
             continue;
+        }
 
         current_residue = (int)get_num_from_line(line, 22, 4);
 
+        if (current_residue != last_residue and seen_ca_or_cb) {
+            count++;
+            seen_ca_or_cb = false;
+        }
         
         // if cb or ca
         atom_type = line.substr(12, 3);
@@ -59,14 +59,11 @@ int count_residues(const string& chain_path) {
             seen_ca_or_cb = true;
         }
 
-
-        
-        if (current_residue != last_residue and seen_ca_or_cb) {
-            count++;
-            seen_ca_or_cb = false;
-        }
-
         last_residue = current_residue;
+    }
+
+    if (seen_ca_or_cb) {
+        count++;
     }
 
     return count;
@@ -80,7 +77,7 @@ Coordinate* get_chain_coordinates(const string& chain_path, int num_residues) {
     Coordinate* coors = new Coordinate[num_residues];
     int coors_index = 0;
     
-    int last_residue = 0;
+    int last_residue = -1;
     int current_residue = 0;
 
     Coordinate CA;
@@ -92,10 +89,12 @@ Coordinate* get_chain_coordinates(const string& chain_path, int num_residues) {
 
     for (string line; getline(pdbfile, line);) {
         // skip line if line does not start with ATOM or HETATM
-        if (line.find("ATOM") != 0 and line.find("HETATM") != 0) 
+        if (line.substr(0, 4) != "ATOM" and line.substr(0,6) != "HETATM") {
             continue;
+        }
 
         current_residue = (int)get_num_from_line(line, 22, 4);
+
         if (current_residue != last_residue) {
             if (CB_updated) {
                 coors[coors_index++] = CB;
@@ -110,19 +109,29 @@ Coordinate* get_chain_coordinates(const string& chain_path, int num_residues) {
         }
 
         atom_type = line.substr(12, 3);
-        if (atom_type.find("CB")) {
-            CB.x = current_residue = get_num_from_line(line, 30, 7);
-            CB.y = current_residue = get_num_from_line(line, 38, 7);
-            CB.z = current_residue = get_num_from_line(line, 46, 7);
+        if (atom_type.find("CB") != string::npos) {
+            CB.x = get_num_from_line(line, 30, 8);
+            CB.y = get_num_from_line(line, 38, 8);
+            CB.z = get_num_from_line(line, 46, 8);
             CB_updated = true;
         }
-        else if (atom_type.find("CA")) {
-            CA.x = current_residue = get_num_from_line(line, 30, 7);
-            CA.y = current_residue = get_num_from_line(line, 38, 7);
-            CA.z = current_residue = get_num_from_line(line, 46, 7);
+        else if (atom_type.find("CA") != string::npos) {
+            CA.x = get_num_from_line(line, 30, 8);
+            CA.y = get_num_from_line(line, 38, 8);
+            CA.z = get_num_from_line(line, 46, 8);
             CA_updated = true;
         }
+
+        
     }
+
+    if (CB_updated) {
+        coors[coors_index++] = CB;
+    }
+    else if (CA_updated) {
+        coors[coors_index++] = CA;
+    }
+    
 
     return coors;
 }
@@ -154,8 +163,8 @@ bool in_contact(const string& chain1_path, const string& chain2_path, double dis
     }
 
 double_break:
-    // delete chain1_coors;
-    // delete chain2_coors;
+    delete chain1_coors;
+    delete chain2_coors;
 
     return (count >= count_minimum);
 }
@@ -196,8 +205,9 @@ int main(int argc, char** argv) {
 
     bool contacting = in_contact(chain1, chain2, distance_thresh, num_pairs_thresh);
 
-    cout << contacting << endl;
-
+    if (contacting) {
+        return 1;
+    }
     return 0;
 
 }
