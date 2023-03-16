@@ -17,8 +17,8 @@ struct Coordinate {
 
 
 
-double dist_between_coor(Coordinate& c1, Coordinate& c2) {
-    return sqrt( pow(c1.x - c2.x, 2) +  pow(c1.y - c2.y, 2) + pow(c1.z - c2.z, 2) );
+double dist_between_coor(Coordinate* c1, Coordinate* c2) {
+    return sqrt( pow(c1->x - c2->x, 2) +  pow(c1->y - c2->y, 2) + pow(c1->z - c2->z, 2) );
 }
 
 
@@ -28,7 +28,7 @@ double get_num_from_line(string line, int start_index, int num_char) {
 }
 
 
-int count_residues(const string& chain_path) {
+int count_valid_residues(const string& chain_path) {
     ifstream pdbfile(chain_path);
 
     int count = 0;
@@ -138,35 +138,91 @@ Coordinate* get_chain_coordinates(const string& chain_path, int num_residues) {
 
 
 
+Coordinate* center_of_chain(Coordinate* coors, const int size) {
+    double sum_x = 0;
+    double sum_y = 0;
+    double sum_z = 0;
+
+    for (int i = 0; i < size; i++) {
+        Coordinate c = coors[i];
+        sum_x += c.x;
+        sum_y += c.y;
+        sum_z += c.z;
+    }
+
+    Coordinate* center = new Coordinate(); 
+    center->x = sum_x/size;
+    center->y = sum_y/size;
+    center->z = sum_z/size;
+
+    return center;
+}
+
+
+double chain_radius(Coordinate* coors, const int size, Coordinate* center) {
+    double radius = -1;
+
+    for (int i = 0; i < size; i++) {
+        Coordinate* c = coors + i;
+        double distance = dist_between_coor(c, center);
+        if (distance > radius) {
+            radius = distance;
+        }
+    }
+
+    return radius;
+}
+
+
+bool contact_possible(Coordinate* chain1_coors, Coordinate* chain2_coors, const int chain1_size, const int chain2_size, double distance_thresh) {
+    Coordinate* chain1_center = center_of_chain(chain1_coors, chain1_size);
+    Coordinate* chain2_center = center_of_chain(chain2_coors, chain2_size);
+
+    double chain1_radius = chain_radius(chain1_coors, chain1_size, chain1_center);
+    double chain2_radius = chain_radius(chain2_coors, chain2_size, chain2_center);
+
+    double dist_between_centers = dist_between_coor(chain1_center, chain2_center);
+    if (dist_between_centers - chain1_radius - chain2_radius > distance_thresh) {
+        return false;
+    }
+    return true;
+}
+
+
+
 bool in_contact(const string& chain1_path, const string& chain2_path, double distance_maximum, int count_minimum) {
 
-    int chain1_num_residues = count_residues(chain1_path);
-    int chain2_num_residues = count_residues(chain2_path);
+    const int chain1_size = count_valid_residues(chain1_path);
+    const int chain2_size = count_valid_residues(chain2_path);
 
-    Coordinate* chain1_coors = get_chain_coordinates(chain1_path, chain1_num_residues);
-    Coordinate* chain2_coors = get_chain_coordinates(chain2_path, chain2_num_residues);
+    Coordinate* chain1_coors = get_chain_coordinates(chain1_path, chain1_size);
+    Coordinate* chain2_coors = get_chain_coordinates(chain2_path, chain2_size);
+
+    if (!contact_possible(chain1_coors, chain2_coors, chain1_size, chain2_size, distance_maximum)) {
+        return false;
+    }
 
     int count = 0;
 
-    for (int i = 0; i < chain1_num_residues; i++) {
-        for (int j = 0; j < chain2_num_residues; j++) {
-            double dist = dist_between_coor(chain1_coors[i], chain2_coors[j]);
+    for (int i = 0; i < chain1_size; i++) {
+        for (int j = 0; j < chain2_size; j++) {
+            double dist = dist_between_coor(chain1_coors+i, chain2_coors+j);
             if (dist <= distance_maximum) {
                 count++;
             }
 
             if (count >= count_minimum) {
-                goto double_break;
+                delete chain1_coors;
+                delete chain2_coors;
+                return true;
             }
 
         }
     }
 
-double_break:
     delete chain1_coors;
     delete chain2_coors;
-
-    return (count >= count_minimum);
+    return false;
 }
 
 
