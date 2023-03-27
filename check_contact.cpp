@@ -144,10 +144,10 @@ Coordinate* center_of_chain(Coordinate* coors, const int size) {
     double sum_z = 0;
 
     for (int i = 0; i < size; i++) {
-        Coordinate c = coors[i];
-        sum_x += c.x;
-        sum_y += c.y;
-        sum_z += c.z;
+        Coordinate* c = coors + i;
+        sum_x += c->x;
+        sum_y += c->y;
+        sum_z += c->z;
     }
 
     Coordinate* center = new Coordinate(); 
@@ -183,6 +183,7 @@ bool contact_possible(Coordinate* chain1_coors, Coordinate* chain2_coors, const 
 
     double dist_between_centers = dist_between_coor(chain1_center, chain2_center);
     if (dist_between_centers - chain1_radius - chain2_radius > distance_thresh) {
+        cout << "impossible" << endl;
         return false;
     }
     return true;
