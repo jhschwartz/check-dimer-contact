@@ -138,58 +138,6 @@ Coordinate* get_chain_coordinates(const string& chain_path, int num_residues) {
 
 
 
-Coordinate* center_of_chain(Coordinate* coors, const int size) {
-    double sum_x = 0;
-    double sum_y = 0;
-    double sum_z = 0;
-
-    for (int i = 0; i < size; i++) {
-        Coordinate* c = coors + i;
-        sum_x += c->x;
-        sum_y += c->y;
-        sum_z += c->z;
-    }
-
-    Coordinate* center = new Coordinate(); 
-    center->x = sum_x/size;
-    center->y = sum_y/size;
-    center->z = sum_z/size;
-
-    return center;
-}
-
-
-double chain_radius(Coordinate* coors, const int size, Coordinate* center) {
-    double radius = -1;
-
-    for (int i = 0; i < size; i++) {
-        Coordinate* c = coors + i;
-        double distance = dist_between_coor(c, center);
-        if (distance > radius) {
-            radius = distance;
-        }
-    }
-
-    return radius;
-}
-
-
-bool contact_possible(Coordinate* chain1_coors, Coordinate* chain2_coors, const int chain1_size, const int chain2_size, double distance_thresh) {
-    Coordinate* chain1_center = center_of_chain(chain1_coors, chain1_size);
-    Coordinate* chain2_center = center_of_chain(chain2_coors, chain2_size);
-
-    double chain1_radius = chain_radius(chain1_coors, chain1_size, chain1_center);
-    double chain2_radius = chain_radius(chain2_coors, chain2_size, chain2_center);
-
-    double dist_between_centers = dist_between_coor(chain1_center, chain2_center);
-    if (dist_between_centers - chain1_radius - chain2_radius > distance_thresh) {
-        cout << "impossible" << endl;
-        return false;
-    }
-    return true;
-}
-
-
 
 bool in_contact(const string& chain1_path, const string& chain2_path, double distance_maximum, int count_minimum) {
 
@@ -198,10 +146,6 @@ bool in_contact(const string& chain1_path, const string& chain2_path, double dis
 
     Coordinate* chain1_coors = get_chain_coordinates(chain1_path, chain1_size);
     Coordinate* chain2_coors = get_chain_coordinates(chain2_path, chain2_size);
-
-    if (!contact_possible(chain1_coors, chain2_coors, chain1_size, chain2_size, distance_maximum)) {
-        return false;
-    }
 
     int count = 0;
 
