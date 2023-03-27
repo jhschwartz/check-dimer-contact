@@ -1,8 +1,6 @@
 import os
 import subprocess
 import tempfile
-import multiprocessing
-import itertools
 
 import pathlib
 dir_ = pathlib.Path(__file__).parent.resolve()
@@ -36,15 +34,6 @@ def check_contact_many(pairs_list, thresh_max_dist, thresh_min_pairs, exe_path=f
             tf.write(f'{chain1_path} {chain2_path}\n')
         tf.seek(0)
         return check_contact_from_file(tf.name, thresh_max_dist, thresh_min_pairs, exe_path)
-
-
-
-def check_contact_many_parallel(pairs_list, thresh_max_dist=8, thresh_min_pairs=10, exe_path=f'{dir_}/check_contact.exe', cores=8, num_series=1000):
-    sub_lists = (pairs_list[i:i+num_series] for i in range(0, len(pairs_list), num_series))
-    args = [(sl, thresh_max_dist, thresh_min_pairs, exe_path) for sl in sub_lists]
-    with multiprocessing.Pool(processes=cores) as p:
-        results = p.starmap(check_contact_many, args)
-    return list(itertools.chain(*results))
 
 
 

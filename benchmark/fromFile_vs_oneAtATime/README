@@ -1,0 +1,7 @@
+check_contact.exe_NEW       the new exe, reads many pairs from file and computes sequentially
+check_contact.exe_OLD       the old exe, computes a single pair given via command arg
+check_contact_NEW.py        python wrappers for new exe
+check_contact_OLD.py        python wrappers for old exe
+do_bench.py                 perform benchmark for set number of replicates
+multi_bench.sh              perform benchmark for replicate numbers 1, 10, 100, 1000
+samples.txt                 list of chain pairs, has outer dependency
