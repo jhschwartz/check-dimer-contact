@@ -17,8 +17,8 @@ struct Coordinate {
 
 
 
-double dist_between_coor(Coordinate& c1, Coordinate& c2) {
-    return sqrt( pow(c1.x - c2.x, 2) +  pow(c1.y - c2.y, 2) + pow(c1.z - c2.z, 2) );
+double dist_between_coor(Coordinate* c1, Coordinate* c2) {
+    return sqrt( pow(c1->x - c2->x, 2) +  pow(c1->y - c2->y, 2) + pow(c1->z - c2->z, 2) );
 }
 
 
@@ -28,7 +28,7 @@ double get_num_from_line(string line, int start_index, int num_char) {
 }
 
 
-int count_residues(const string& chain_path) {
+int count_valid_residues(const string& chain_path) {
     ifstream pdbfile(chain_path);
 
     int count = 0;
@@ -138,35 +138,36 @@ Coordinate* get_chain_coordinates(const string& chain_path, int num_residues) {
 
 
 
+
 bool in_contact(const string& chain1_path, const string& chain2_path, double distance_maximum, int count_minimum) {
 
-    int chain1_num_residues = count_residues(chain1_path);
-    int chain2_num_residues = count_residues(chain2_path);
+    const int chain1_size = count_valid_residues(chain1_path);
+    const int chain2_size = count_valid_residues(chain2_path);
 
-    Coordinate* chain1_coors = get_chain_coordinates(chain1_path, chain1_num_residues);
-    Coordinate* chain2_coors = get_chain_coordinates(chain2_path, chain2_num_residues);
+    Coordinate* chain1_coors = get_chain_coordinates(chain1_path, chain1_size);
+    Coordinate* chain2_coors = get_chain_coordinates(chain2_path, chain2_size);
 
     int count = 0;
 
-    for (int i = 0; i < chain1_num_residues; i++) {
-        for (int j = 0; j < chain2_num_residues; j++) {
-            double dist = dist_between_coor(chain1_coors[i], chain2_coors[j]);
+    for (int i = 0; i < chain1_size; i++) {
+        for (int j = 0; j < chain2_size; j++) {
+            double dist = dist_between_coor(chain1_coors+i, chain2_coors+j);
             if (dist <= distance_maximum) {
                 count++;
             }
 
             if (count >= count_minimum) {
-                goto double_break;
+                delete chain1_coors;
+                delete chain2_coors;
+                return true;
             }
 
         }
     }
 
-double_break:
     delete chain1_coors;
     delete chain2_coors;
-
-    return (count >= count_minimum);
+    return false;
 }
 
 
