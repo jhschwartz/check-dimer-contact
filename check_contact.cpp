@@ -4,8 +4,6 @@
 #include <string>
 #include <cmath>
 
-#include "include/cxxopts-3.1.1/include/cxxopts.hpp"
-
 using namespace std;
 
 
@@ -132,7 +130,7 @@ Coordinate* get_chain_coordinates(const string& chain_path, int num_residues) {
         coors[coors_index++] = CA;
     }
     
-
+    pdbfile.close();
     return coors;
 }
 
@@ -175,40 +173,28 @@ bool in_contact(const string& chain1_path, const string& chain2_path, double dis
 
 int main(int argc, char** argv) {
 
-    cxxopts::Options options("PDB chains contact checker", 
-        "checks if two PDB chains, of the same PDB entry "
-        "and split into their own files, are in contact "
-        "according to the given definition of being in contact."
-    );
-
-    options.add_options()
-        ("c1,chain1-path", "path to chain1's pdb file", cxxopts::value<string>())
-        ("c2,chain2-path", "path to chain2's pdb file", cxxopts::value<string>())
-        ("d,threshold-max-contact-distance", "The maximum distance, in angstroms, between residues to be considered in contact", 
-            cxxopts::value<double>()->default_value("8"))
-        ("n,threshold-min-pairs", "The minimum number of residue pairs between chains, non-exclusive, that must be in contact for the chains to be considered in contact", 
-            cxxopts::value<int>()->default_value("10"))
-        ("h,help", "Print usage")
-    ;
-
-    auto result = options.parse(argc, argv);
-
-    if (result.count("help"))
-    {
-      cout << options.help() << endl;
-      exit(0);
+    if (argc != 5) {
+        cout << "usage: ./check_contact.exe <infile> <outfile> <contact-definition-angstroms> <contact-definition-num-residue-pairs>" << endl;
+        return -1;
     }
 
-    const string chain1 = result["chain1-path"].as<string>();
-    const string chain2 = result["chain2-path"].as<string>();
-    double distance_thresh = result["threshold-max-contact-distance"].as<double>();
-    int num_pairs_thresh = result["threshold-min-pairs"].as<int>();
+    const string infilename = argv[1];
+    const string outfilename = argv[2];
+    const double dist_max = atof(argv[3]);
+    const int count_min = atoi(argv[4]);
 
-    bool contacting = in_contact(chain1, chain2, distance_thresh, num_pairs_thresh);
+    ifstream infile_stream(infilename);
+    ofstream outfile_stream(outfilename);
 
-    if (contacting) {
-        return 1;
+    string chain1path, chain2path;
+    while(infile_stream >> chain1path >> chain2path) {
+        bool contacting = in_contact(chain1path, chain2path, dist_max, count_min);
+        outfile_stream << contacting << endl;
     }
+    
+    infile_stream.close();
+    outfile_stream.close();
+
     return 0;
 
 }

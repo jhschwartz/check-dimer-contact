@@ -4,7 +4,7 @@ import os
 import sys
 
 sys.path.append('..')
-from check_contact import check_contact
+from check_contact import check_contact_pair as check_contact
 
 test_dir = pathlib.Path(__file__).parent.resolve()
 test_data = os.path.join(test_dir, 'data')
@@ -92,3 +92,8 @@ class TestCheckContact(unittest.TestCase):
         chain2 = os.path.join(test_data, '3r12B.pdb')
         with self.assertRaises(FileNotFoundError):
             check_contact(chain1_path=chain1, chain2_path=chain2, exe_path='./notarealfile')
+
+
+if __name__ == '__main__':
+    unittest.main()
+
