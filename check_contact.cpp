@@ -137,7 +137,7 @@ Coordinate* get_chain_coordinates(const string& chain_path, int num_residues) {
 
 
 
-bool in_contact(const string& chain1_path, const string& chain2_path, double distance_maximum, int count_minimum) {
+int count_contacts(const string& chain1_path, const string& chain2_path, double distance_maximum) {
 
     const int chain1_size = count_valid_residues(chain1_path);
     const int chain2_size = count_valid_residues(chain2_path);
@@ -153,19 +153,12 @@ bool in_contact(const string& chain1_path, const string& chain2_path, double dis
             if (dist <= distance_maximum) {
                 count++;
             }
-
-            if (count >= count_minimum) {
-                delete chain1_coors;
-                delete chain2_coors;
-                return true;
-            }
-
         }
     }
 
     delete chain1_coors;
     delete chain2_coors;
-    return false;
+    return count;
 }
 
 
@@ -188,8 +181,9 @@ int main(int argc, char** argv) {
 
     string chain1path, chain2path;
     while(infile_stream >> chain1path >> chain2path) {
-        bool contacting = in_contact(chain1path, chain2path, dist_max, count_min);
-        outfile_stream << contacting << endl;
+        int num_contacts = count_contacts(chain1path, chain2path, dist_max);
+        bool contacting = num_contacts >= count_min;
+        outfile_stream << contacting << "\t" << num_contacts << endl;
     }
     
     infile_stream.close();
