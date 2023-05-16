@@ -1,0 +1,4 @@
+data/dummy_one-ca.pdb data/dummy_one-cb.pdb
+data/dummy_10-far.pdb data/dummy_one-ca.pdb
+data/dummy_one-cb.pdb data/dummy_10-close.pdb
+data/dummy_10-close.pdb data/dummy_10-close.pdb
