@@ -56,7 +56,7 @@ def count_contact_many_parallel(pairs_list, thresh_max_dist=8, thresh_min_pairs=
     sub_lists = (pairs_list[i:i+num_series] for i in range(0, len(pairs_list), num_series))
     args = ((sl, thresh_max_dist, thresh_min_pairs, exe_path) for sl in sub_lists)
     with multiprocessing.Pool(processes=cores) as p:
-        results = p.starmap(count_contact_many, args)
+        results = p.starmap(func=count_contact_many, iterable=args, chunksize=100)
     return list(itertools.chain(*results))
 
 
@@ -65,7 +65,7 @@ def check_contact_many_parallel(pairs_list, thresh_max_dist=8, thresh_min_pairs=
     sub_lists = (pairs_list[i:i+num_series] for i in range(0, len(pairs_list), num_series))
     args = ((sl, thresh_max_dist, thresh_min_pairs, exe_path) for sl in sub_lists)
     with multiprocessing.Pool(processes=cores) as p:
-        results = p.starmap(check_contact_many, args)
+        results = p.starmap(func=check_contact_many, iterable=args, chunksize=100)
     return list(itertools.chain(*results))
 
 
