@@ -166,8 +166,8 @@ int count_contacts(const string& chain1_path, const string& chain2_path, double 
 
 int main(int argc, char** argv) {
 
-    if (argc != 5) {
-        cout << "usage: ./check_contact.exe <infile> <outfile> <contact-definition-angstroms> <contact-definition-num-residue-pairs>" << endl;
+    if (argc != 5 and argc != 6) {
+        cout << "usage: ./check_contact.exe <infile> <outfile> <contact-definition-angstroms> <contact-definition-num-residue-pairs> [OPTIONAL: <rcsb-path>]" << endl;
         return -1;
     }
 
@@ -175,15 +175,31 @@ int main(int argc, char** argv) {
     const string outfilename = argv[2];
     const double dist_max = atof(argv[3]);
     const int count_min = atoi(argv[4]);
+    
+    string lib_path;
+    if (argc == 6) {
+        lib_path = argv[5];
+    }
 
     ifstream infile_stream(infilename);
     ofstream outfile_stream(outfilename);
 
     string chain1path, chain2path;
+    int i = 0;
     while(infile_stream >> chain1path >> chain2path) {
+        if (argc == 6) {
+            string div1 = chain1path.substr(1, 2);
+            string div2 = chain2path.substr(1, 2);
+            chain1path = lib_path + "/" + div1 + "/" + chain1path + ".pdb";
+            chain2path = lib_path + "/" + div2 + "/" + chain2path + ".pdb";
+        }
         int num_contacts = count_contacts(chain1path, chain2path, dist_max);
         bool contacting = num_contacts >= count_min;
         outfile_stream << contacting << "\t" << num_contacts << endl;
+        i++;
+        if (i % 10000 == 0) {
+            cout << "chain pair " << i << "..." << endl;
+        }
     }
     
     infile_stream.close();
